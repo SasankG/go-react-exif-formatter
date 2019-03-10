@@ -8,6 +8,7 @@ import (
 // Define the routes
 func index(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Testing")
+	// Run the util functions here
 }
 
 // Create webserver
