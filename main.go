@@ -2,19 +2,28 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 // Define the routes
 func index(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Testing")
+	w.Header().Set("Content-Type", "application/json")
+
 	// Run the util functions here
 }
 
 // Create webserver
 func main() {
-	// Routes handles here
-	http.HandleFunc("/", index)
-	fmt.Println("Server starting on PORT 8080")
-	http.ListenAndServe(":8080", nil)
+	// init router
+	r := mux.NewRouter()
+
+	// Route handlers
+	r.HandleFunc("/", index).Methods("GET")
+
+	// Start the server
+	fmt.Println("Server started on PORT 8080")
+	log.Fatal(http.ListenAndServe(":8080", r))
 }

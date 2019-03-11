@@ -14,20 +14,15 @@ import (
 // testing image
 var img = "./images/exif7.jpg"
 
-// Open the image -> Change this to transform input images later
-func openImg(imageFile string) *os.File {
-	// open img
-	file, err := os.Open(imageFile)
+// Opens file and gets exif data
+// @params imgs -> a value reciever of the image
+// @returns sOrientation -> stringified value of the *tiff.Tag for orientation
+func exifGet(imgs string) string {
+	// Get the opened file
+	file, err := os.Open(imgs)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return file
-}
-
-// Opens file and gets exif data
-func exifGet(imgs string) string {
-	// Get the opened file
-	file := openImg(imgs)
 
 	// decode exif data
 	x, err := exif.Decode(file)
@@ -43,7 +38,8 @@ func exifGet(imgs string) string {
 	return sOrientation
 }
 
-// Generate randome name
+// Generate random name
+// @returns b -> a random string made from letters in the []byte
 func nameGen(length int) string {
 	letters := []byte("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 	b := make([]byte, length)
@@ -53,13 +49,13 @@ func nameGen(length int) string {
 	return string(b)
 }
 
-// Transform and save function
+// Transform and save function, the "main" method of this package
 // @params imges -> the path of the image
 func transform(imges string) {
 	// Get orientation number
 	exifNum := exifGet(imges)
 
-	// open image
+	// open image using imaging package
 	myImage, err := imaging.Open(imges)
 	if err != nil {
 		log.Fatal(err)
