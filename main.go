@@ -6,30 +6,40 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 )
 
 // Define the routes
 func index(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	// Run the util functions here
+	fmt.Fprintf(w, "hello")
 }
 
 func api(w http.ResponseWriter, r *http.Request) {
 	// Change route to get mux.Vars and also to accept Multipart content-type
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	fmt.Println("Connected -> api route")
+	fmt.Fprintf(w, "connected to api")
 }
 
-// Create webserver
 func main() {
-	// init router
+
 	r := mux.NewRouter()
 
 	// Route handlers
 	r.HandleFunc("/", index).Methods("GET")
-	r.HandleFunc("/api", api).Methods("POST")
+	// Initially testing GET, Change to POST after
+	r.HandleFunc("/api", api).Methods("GET", "OPTIONS")
+
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},   // All origins
+		AllowedMethods: []string{"GET"}, // Allowing only GET, change to POST
+	})
 
 	// Start the server
 	fmt.Println("Server started on PORT 8080")
-	log.Fatal(http.ListenAndServe(":8080", r))
+	log.Fatal(http.ListenAndServe(":8080", c.Handler(r)))
 }
