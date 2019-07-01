@@ -51,7 +51,7 @@ func nameGen(length int) string {
 
 // Transform and save function, the "main" method of this package
 // @params imges -> the path of the image
-func transform(imges string) {
+func Transform(imges string) {
 	// Get orientation number
 	exifNum := exifGet(imges)
 

@@ -12,6 +12,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
+	"github.com/sasankg/go-exif/util"
 )
 
 func index(w http.ResponseWriter, r *http.Request) {
@@ -39,52 +40,52 @@ func api(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("failed to retrieve image")
 		w.WriteHeader(http.StatusBadRequest)
 		return
-	} else if err == nil {
-		fmt.Println("Success, image upload was successful")
-		fmt.Println(reflect.TypeOf(file))
-
-		buf := bytes.NewBuffer(nil)
-		if _, err := io.Copy(buf, file); err != nil {
-			log.Print(err)
-		} else {
-			log.Print(reflect.TypeOf(buf))
-		}
-
-		imageOutput, err := os.Create(multipartFileHeader.Filename)
-		if err != nil {
-			log.Print(err)
-		}
-
-		// read buf
-		_, err = imageOutput.Write(buf.Bytes())
-		if err != nil {
-			log.Print(err)
-		} else {
-			log.Print(reflect.TypeOf(imageOutput))
-			namer := imageOutput.Name()
-			log.Print(namer)
-		}
-
-		//directory to save
-		dir := "./testingsave"
-		dst, err := os.Create(filepath.Join(dir, filepath.Base(imageOutput.Name())))
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		defer imageOutput.Close()
-
-		imageSave, err := os.Open(imageOutput.Name())
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		_, err = io.Copy(dst, imageSave)
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println("File Saved")
 	}
+
+	fmt.Println("Success, image upload was successful")
+	fmt.Println(reflect.TypeOf(file))
+
+	buf := bytes.NewBuffer(nil)
+	if _, err := io.Copy(buf, file); err != nil {
+		log.Print(err)
+	} else {
+		log.Print(reflect.TypeOf(buf))
+	}
+
+	imageOutput, err := os.Create(multipartFileHeader.Filename)
+	if err != nil {
+		log.Print(err)
+	}
+
+	_, err = imageOutput.Write(buf.Bytes())
+	if err != nil {
+		log.Print(err)
+	} else {
+		log.Print(reflect.TypeOf(imageOutput))
+		namer := imageOutput.Name()
+		log.Print(namer)
+	}
+
+	dir := "./images"
+	dst, err := os.Create(filepath.Join(dir, filepath.Base(imageOutput.Name())))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer imageOutput.Close()
+
+	imageSave, err := os.Open(imageOutput.Name())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = io.Copy(dst, imageSave)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("File Saved")
+
+	util.Transform(imageOutput.Name())
 
 	defer file.Close()
 
