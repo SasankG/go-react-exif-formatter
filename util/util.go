@@ -24,6 +24,8 @@ func exifGet(imgs string) string {
 		log.Fatal(err)
 	}
 
+	defer file.Close()
+
 	// decode exif data
 	x, err := exif.Decode(file)
 	if err != nil {
@@ -40,7 +42,7 @@ func exifGet(imgs string) string {
 
 // Generate random name
 // @returns b -> a random string made from letters in the []byte
-func nameGen(length int) string {
+func NameGen(length int) string {
 	letters := []byte("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 	b := make([]byte, length)
 	for i := range b {
@@ -67,51 +69,51 @@ func Transform(imges string) {
 	// conditionals and saves
 	if exifNum == "3" {
 		rotatedImg := imaging.Rotate(myImage, 180, color.NRGBA{0, 0, 0, 0})
-		err = imaging.Save(rotatedImg, "./testingsave/"+nameGen(10)+".jpg")
+		err = imaging.Save(rotatedImg, "./testingsave/"+NameGen(10)+".jpg")
 		if err != nil {
 			log.Fatalf("failed to save image: %v", err)
 		}
 	} else if exifNum == "6" {
 		rotatedImg := imaging.Rotate(myImage, 270, color.NRGBA{0, 0, 0, 0})
-		err = imaging.Save(rotatedImg, "./testingsave/"+nameGen(10)+".jpg")
+		err = imaging.Save(rotatedImg, "./testingsave/"+NameGen(10)+".jpg")
 		if err != nil {
 			log.Fatalf("failed to save image: %v", err)
 		}
 	} else if exifNum == "8" {
 		rotatedImg := imaging.Rotate(myImage, 90, color.NRGBA{0, 0, 0, 0})
-		err = imaging.Save(rotatedImg, "./testingsave/"+nameGen(10)+".jpg")
+		err = imaging.Save(rotatedImg, "./testingsave/"+NameGen(10)+".jpg")
 		if err != nil {
 			log.Fatalf("failed to save image: %v", err)
 		}
 	} else if exifNum == "1" {
 		rotatedImg := myImage
-		err = imaging.Save(rotatedImg, "./testingsave/"+nameGen(10)+".jpg")
+		err = imaging.Save(rotatedImg, "./testingsave/"+NameGen(10)+".jpg")
 		if err != nil {
 			log.Fatalf("failed to save image: %v", err)
 		}
 	} else if exifNum == "7" {
 		rotatedImg := imaging.Rotate(myImage, 90, color.NRGBA{0, 0, 0, 0})
 		flippedImg := imaging.FlipH(rotatedImg)
-		err = imaging.Save(flippedImg, "./testingsave/"+nameGen(10)+".jpg")
+		err = imaging.Save(flippedImg, "./testingsave/"+NameGen(10)+".jpg")
 		if err != nil {
 			log.Fatalf("failed to save image: %v", err)
 		}
 	} else if exifNum == "2" {
 		flippedImg := imaging.FlipH(myImage)
-		err = imaging.Save(flippedImg, "./testingsave/"+nameGen(10)+".jpg")
+		err = imaging.Save(flippedImg, "./testingsave/"+NameGen(10)+".jpg")
 		if err != nil {
 			log.Fatalf("failed to save image: %v", err)
 		}
 	} else if exifNum == "5" {
 		rotatedImg := imaging.Rotate(myImage, 270, color.NRGBA{0, 0, 0, 0})
 		flippedImg := imaging.FlipH(rotatedImg)
-		err = imaging.Save(flippedImg, "./testingsave/"+nameGen(10)+".jpg")
+		err = imaging.Save(flippedImg, "./testingsave/"+NameGen(10)+".jpg")
 		if err != nil {
 			log.Fatalf("failed to save image: %v", err)
 		}
 	} else if exifNum == "8" {
 		flippedImg := imaging.FlipV(myImage)
-		err = imaging.Save(flippedImg, "./testingsave/"+nameGen(10)+".jpg")
+		err = imaging.Save(flippedImg, "./testingsave/"+NameGen(10)+".jpg")
 		if err != nil {
 			log.Fatalf("failed to save image: %v", err)
 		}
