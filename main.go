@@ -9,25 +9,19 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/rs/cors"
 	"github.com/sasankg/go-exif/util"
 )
 
-func index(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	fmt.Fprintf(w, "hello")
-}
-
 func api(w http.ResponseWriter, r *http.Request) {
 
-	//w.Header().Set("Content-Type", "multipart/form-data")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	fmt.Println("Connected -> api route")
-	fmt.Fprintf(w, "connected to api")
+
+	fmt.Fprintf(w, "hello")
 
 	r.ParseMultipartForm(32 << 20)
 	if err := r.ParseMultipartForm(32 << 20); err != nil {
@@ -66,15 +60,15 @@ func api(w http.ResponseWriter, r *http.Request) {
 		log.Print(namer)
 	}
 
-	dir := "./images"
-	dst, err := os.Create(filepath.Join(dir, filepath.Base(imageOutput.Name())))
+	// Save
+	// open the file for reading
+	imageSave, err := os.Open(imageOutput.Name())
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	defer imageOutput.Close()
-
-	imageSave, err := os.Open(imageOutput.Name())
+	dir := "./images"
+	dst, err := os.Create(filepath.Join(dir, filepath.Base(util.NameGen(4)+imageSave.Name())))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -83,11 +77,60 @@ func api(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("File Saved")
+	log.Println("File Saved")
+	defer imageSave.Close()
+	defer dst.Close()
 
+	// transform
 	util.Transform(imageOutput.Name())
 
+	defer imageOutput.Close()
 	defer file.Close()
+
+	// return image to client
+	var files []string
+	var getImg string
+
+	root := "./testingsave"
+	errs := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		files = append(files, path)
+		return nil
+	})
+	if errs != nil {
+		panic(err)
+	}
+	for _, file := range files {
+		if filepath.Ext(file) == ".jpg" {
+			getImg = file
+			log.Println(getImg)
+		}
+	}
+
+	// change this to the file in the testing save folder
+	finalImage, err := os.Open(getImg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer finalImage.Close()
+
+	// get header parameters and info
+	ContentType := http.DetectContentType(buf.Bytes())
+
+	// set headers
+	w.Header().Set("Content-Type", ContentType)
+	w.Header().Set("Content-Disposition", "attachment; filename="+imageOutput.Name())
+
+	// send to the client
+	io.Copy(w, finalImage)
+
+	// delete image
+	os.Remove(imageOutput.Name())
+
+	// clear testingsave
+	os.RemoveAll(getImg)
+
+	return
 
 }
 
@@ -95,15 +138,22 @@ func main() {
 
 	r := mux.NewRouter()
 
-	r.HandleFunc("/", index).Methods("GET")
+	// handle app
+	buildHandler := http.FileServer(http.Dir("./client/build"))
+	r.PathPrefix("/").Handler(buildHandler).Methods("GET")
+
 	r.HandleFunc("/api", api).Methods("GET", "POST", "OPTIONS")
 
-	// temp cors fix
-	c := cors.New(cors.Options{
-		AllowedOrigins: []string{"*"},
-		AllowedMethods: []string{"GET", "POST"},
-	})
+	// configure server
+	srv := &http.Server{
+		Handler:      r,
+		Addr:         "127.0.0.1:8080",
+		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  15 * time.Second,
+	}
 
+	// serve
 	fmt.Println("Server started on PORT 8080")
-	log.Fatal(http.ListenAndServe(":8080", c.Handler(r)))
+	log.Fatal(srv.ListenAndServe())
+
 }
