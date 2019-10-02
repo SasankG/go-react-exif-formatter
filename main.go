@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"log"
@@ -21,8 +23,7 @@ func api(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("Connected -> api route")
 
-	fmt.Fprintf(w, "hello")
-
+	// obtain image from form data
 	r.ParseMultipartForm(32 << 20)
 	if err := r.ParseMultipartForm(32 << 20); err != nil {
 		fmt.Println(err)
@@ -36,8 +37,10 @@ func api(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// logs -------
 	fmt.Println("Success, image upload was successful")
 	fmt.Println(reflect.TypeOf(file))
+	// ------------
 
 	buf := bytes.NewBuffer(nil)
 	if _, err := io.Copy(buf, file); err != nil {
@@ -46,6 +49,7 @@ func api(w http.ResponseWriter, r *http.Request) {
 		log.Print(reflect.TypeOf(buf))
 	}
 
+	// open image and create a file on server
 	imageOutput, err := os.Create(multipartFileHeader.Filename)
 	if err != nil {
 		log.Print(err)
@@ -67,6 +71,7 @@ func api(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
+	// save file in ./images
 	dir := "./images"
 	dst, err := os.Create(filepath.Join(dir, filepath.Base(util.NameGen(4)+imageSave.Name())))
 	if err != nil {
@@ -81,16 +86,17 @@ func api(w http.ResponseWriter, r *http.Request) {
 	defer imageSave.Close()
 	defer dst.Close()
 
-	// transform
+	// transform image
 	util.Transform(imageOutput.Name())
 
 	defer imageOutput.Close()
 	defer file.Close()
 
-	// return image to client
+	// return transformed image to client
 	var files []string
 	var getImg string
 
+	// walk through transformed image folder
 	root := "./testingsave"
 	errs := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		files = append(files, path)
@@ -106,7 +112,7 @@ func api(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// change this to the file in the testing save folder
+	// open image to send
 	finalImage, err := os.Open(getImg)
 	if err != nil {
 		log.Fatal(err)
@@ -114,15 +120,20 @@ func api(w http.ResponseWriter, r *http.Request) {
 
 	defer finalImage.Close()
 
-	// get header parameters and info
-	ContentType := http.DetectContentType(buf.Bytes())
+	// create buffer for image to send
+	imgInfo, _ := finalImage.Stat()
+	var finalImageSize = imgInfo.Size()
+	finalBuf := make([]byte, finalImageSize)
 
-	// set headers
-	w.Header().Set("Content-Type", ContentType)
-	w.Header().Set("Content-Disposition", "attachment; filename="+imageOutput.Name())
+	// read final image into a biffer
+	fReader := bufio.NewReader(finalImage)
+	fReader.Read(finalBuf)
 
-	// send to the client
-	io.Copy(w, finalImage)
+	// convert to base 64
+	imgBase64Str := base64.StdEncoding.EncodeToString(finalBuf)
+
+	// send to client base64
+	fmt.Fprintf(w, imgBase64Str)
 
 	// delete image
 	os.Remove(imageOutput.Name())
