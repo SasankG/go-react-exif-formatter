@@ -144,7 +144,7 @@ func main() {
 		ReadTimeout:  15 * time.Second,
 	}
 
-	log.Println("Server started on PORT" + port)
+	log.Println("Server started on PORT 8080")
 	log.Fatal(srv.ListenAndServe())
 
 }
