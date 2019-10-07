@@ -131,11 +131,11 @@ func main() {
 
 	r.HandleFunc("/api", api).Methods("GET", "POST", "OPTIONS")
 
-	port := os.Getenv("PORT")
+	// port := os.Getenv("PORT")
 
-	if port == "" {
-		log.Fatal("$PORT must be set")
-	}
+	// if port == "" {
+	// 	log.Fatal("$PORT must be set")
+	// }
 
 	srv := &http.Server{
 		Handler:      r,
