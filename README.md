@@ -17,5 +17,10 @@
 - **React** The interface is built on React
 - **Go** The server is written in Go 
 
+<p align = 'center'>
+    <img src="./screenshots/exif.gif" width="60%">
+</p>
+
+
 ### Author
 - **Sasank Ganapathiraju**
